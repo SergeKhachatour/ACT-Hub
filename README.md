@@ -1,99 +1,185 @@
-# ACT Hub - Stellar Asset Explorer
+# ACT Hub - Stellar Asset Trading Hub
 
-A real-time Stellar network asset explorer focused on tracking LOBSTR curated assets, market caps, and prices.
+A comprehensive trading platform for Stellar assets with liquidity pool management, asset swapping, and real-time analytics.
 
-## 🚀 Features
+## Features
 
-- **Asset Tracking**
-  - Real-time price updates
-  - Market cap calculations
-  - Holder statistics
-  - Asset type classification
+- 🌟 Asset Discovery & Management
+- 💧 Liquidity Pool Analytics
+- 💱 Asset Swapping
+- 📊 Real-time Market Data
+- 📱 Responsive Design
+- 🔄 Real-time Updates
 
-- **Supported Assets**
-  - Native XLM
-  - Stablecoins (USDC, EURT)
-  - Wrapped Assets (yXLM, yBTC, yETH)
-  - LOBSTR Curated Assets (AQUA, LSP, ACT, etc.)
+## Prerequisites
 
-- **Price Discovery**
-  - USDC orderbook integration
-  - CoinGecko API for BTC/ETH prices
-  - Automatic fallback prices
+- Node.js (v14 or higher)
+- MongoDB (v4.4 or higher)
+- npm or yarn
+- Git
 
-## 🛠 Installation
+## MongoDB Setup
 
-1. **Clone the repository**
+1. Install MongoDB Community Edition:
    ```bash
-   git clone <repository-url>
+   # Windows (using chocolatey)
+   choco install mongodb
+
+   # macOS (using homebrew)
+   brew tap mongodb/brew
+   brew install mongodb-community
+
+   # Ubuntu
+   sudo apt update
+   sudo apt install mongodb
+   ```
+
+2. Start MongoDB service:
+   ```bash
+   # Windows
+   net start MongoDB
+
+   # macOS
+   brew services start mongodb-community
+
+   # Ubuntu
+   sudo systemctl start mongodb
+   ```
+
+3. Verify MongoDB is running:
+   ```bash
+   mongosh
+   ```
+
+4. Create a new database and user:
+   ```javascript
+   use act_hub_db
+   db.createUser({
+     user: "act_hub_user",
+     pwd: "your_password",
+     roles: ["readWrite"]
+   })
+   ```
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/act-hub.git
    cd act-hub
    ```
 
-2. **Install dependencies**
+2. Install backend dependencies:
    ```bash
    npm install
    ```
 
-3. **Set up environment variables**
+3. Install frontend dependencies:
    ```bash
-   cp .env.example .env
+   cd frontend
+   npm install
    ```
-   Edit `.env` with your configuration:
-   ```
+
+4. Create .env files:
+
+   Backend (.env):
+   ```env
    PORT=3333
-   STELLAR_NETWORK=PUBLIC
-   PORT_FRONTEND=3002
-   REACT_APP_API_URL=http://localhost:3333
-   REACT_APP_STELLAR_NETWORK=PUBLIC
+   MONGODB_URI=mongodb://localhost:27017/act_hub_db
+   JWT_SECRET=your_jwt_secret
+   NODE_ENV=development
    ```
 
-## 🚦 Usage
+   Frontend (frontend/.env):
+   ```env
+   PORT=3002
+   REACT_APP_API_URL=http://localhost:3333
+   REACT_APP_STELLAR_NETWORK=TESTNET
+   REACT_APP_DOMAIN=localhost
+   REACT_APP_WS_URL=ws://localhost:3333
+   ```
 
-1. **Start the server**
+## Running the Application
+
+1. Start the backend server:
    ```bash
+   # Development mode
+   npm run dev
+
+   # Production mode
+   npm run prod
+   ```
+
+2. Start the frontend development server:
+   ```bash
+   cd frontend
    npm start
    ```
 
-2. **Access the API**
-   - Base URL: `http://localhost:3333`
-   - API Documentation below
+The application will be available at:
+- Frontend: http://localhost:3002
+- Backend API: http://localhost:3333
 
-## 📡 API Endpoints
-
-### Assets
-
-- GET /api/assets - Get all assets
-- GET /api/assets/top - Get top assets
-- GET /api/assets/:code/:issuer - Get asset details
-
-### Pools
-
-- GET /api/pools?asset_code=CODE&asset_issuer=ISSUER - Get pools for asset
-- GET /api/pools/:pool_id - Get pool details
-- GET /api/pools/:pool_id/trades - Get pool trades
-
-## Environment Setup
-
-1. Backend (.env):
-```env
-PORT=3333
-STELLAR_NETWORK=PUBLIC
-```
-
-2. Frontend (.env):
-```env
-REACT_APP_API_URL=http://localhost:3333
-REACT_APP_STELLAR_NETWORK=PUBLIC
-```
-
-## Available Routes
+## API Endpoints
 
 ### Assets
-- GET /api/assets - Get all assets
-- GET /api/assets/top - Get top assets
-- GET /api/assets/:code/:issuer - Get asset details
+- `GET /api/assets` - Get all assets
+- `GET /api/assets/top` - Get top assets
+- `GET /api/assets/search/:query` - Search assets
+- `GET /api/assets/:code/:issuer` - Get asset details
 
-### Pools
-- GET /api/pools?asset_code=CODE&asset_issuer=ISSUER - Get pools for asset
-- GET /api/pools/:pool_id - Get pool details
-- GET /api/pools/:pool_id/trades - Get pool trades
+### Liquidity Pools
+- `GET /api/pools` - Get all pools
+- `GET /api/pools/:pool_id` - Get pool details
+- `GET /api/pools/:pool_id/trades` - Get pool trades
+
+### Market Data
+- `GET /api/market/prices` - Get current prices
+- `GET /api/market/volume` - Get trading volume
+
+## Development
+
+### Project Structure
+```
+act-hub/
+├── frontend/           # React frontend
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   └── theme.js
+│   └── package.json
+├── controllers/        # API controllers
+├── routes/            # API routes
+├── models/            # Database models
+├── config/            # Configuration files
+├── server.js          # Express server
+└── package.json
+```
+
+### Technologies Used
+
+- Frontend:
+  - React
+  - Material-UI
+  - Recharts
+  - React Router
+
+- Backend:
+  - Node.js
+  - Express
+  - MongoDB
+  - Stellar SDK
+  - WebSocket
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
