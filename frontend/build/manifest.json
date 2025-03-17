@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "name": "Stellar Wallet",
+  "version": "1.0",
+  "description": "A Stellar wallet application",
+  "permissions": [
+    "https://*.stellar.org/*",
+    "http://localhost:3002/*",
+    "http://localhost:3333/*"
+  ],
+  "content_security_policy": "script-src 'self' https://www.freighter.app; object-src 'self'",
+  "web_accessible_resources": [
+    "index.html",
+    "static/js/*",
+    "static/css/*",
+    "static/media/*"
+  ]
+} 

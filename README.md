@@ -40,10 +40,10 @@ A real-time Stellar network asset explorer focused on tracking LOBSTR curated as
    ```
    Edit `.env` with your configuration:
    ```
-   PORT=3001
+   PORT=3333
    STELLAR_NETWORK=PUBLIC
    PORT_FRONTEND=3002
-   REACT_APP_API_URL=http://localhost:3001
+   REACT_APP_API_URL=http://localhost:3333
    REACT_APP_STELLAR_NETWORK=PUBLIC
    ```
 
@@ -55,9 +55,45 @@ A real-time Stellar network asset explorer focused on tracking LOBSTR curated as
    ```
 
 2. **Access the API**
-   - Base URL: `http://localhost:3001`
+   - Base URL: `http://localhost:3333`
    - API Documentation below
 
 ## 📡 API Endpoints
 
 ### Assets
+
+- GET /api/assets - Get all assets
+- GET /api/assets/top - Get top assets
+- GET /api/assets/:code/:issuer - Get asset details
+
+### Pools
+
+- GET /api/pools?asset_code=CODE&asset_issuer=ISSUER - Get pools for asset
+- GET /api/pools/:pool_id - Get pool details
+- GET /api/pools/:pool_id/trades - Get pool trades
+
+## Environment Setup
+
+1. Backend (.env):
+```env
+PORT=3333
+STELLAR_NETWORK=PUBLIC
+```
+
+2. Frontend (.env):
+```env
+REACT_APP_API_URL=http://localhost:3333
+REACT_APP_STELLAR_NETWORK=PUBLIC
+```
+
+## Available Routes
+
+### Assets
+- GET /api/assets - Get all assets
+- GET /api/assets/top - Get top assets
+- GET /api/assets/:code/:issuer - Get asset details
+
+### Pools
+- GET /api/pools?asset_code=CODE&asset_issuer=ISSUER - Get pools for asset
+- GET /api/pools/:pool_id - Get pool details
+- GET /api/pools/:pool_id/trades - Get pool trades

@@ -352,10 +352,41 @@ const getAssetDetails = async (req, res) => {
 const searchAssets = async (req, res) => {
     try {
         const { query } = req.params;
-        // Implement asset search logic here
-        res.json({ query, results: [] });
+        
+        // Convert LOBSTR_ASSETS object to searchable array
+        const searchResults = Object.entries(LOBSTR_ASSETS)
+            .filter(([code]) => code.toLowerCase().includes(query.toLowerCase()))
+            .map(([code, info]) => ({
+                code,
+                issuer: info.issuer,
+                type: info.type,
+                image_url: getAssetImage({
+                    asset_code: code,
+                    asset_issuer: info.issuer
+                })
+            }));
+
+        // Add XLM if query matches
+        if ('xlm'.includes(query.toLowerCase())) {
+            searchResults.unshift({
+                code: 'XLM',
+                issuer: 'native',
+                type: 'Native',
+                image_url: getAssetImage({
+                    asset_code: 'XLM',
+                    asset_issuer: 'native',
+                    asset_type: 'native'
+                })
+            });
+        }
+
+        res.json(searchResults);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error searching assets:', error);
+        res.status(500).json({ 
+            error: 'Failed to search assets',
+            details: error.message
+        });
     }
 };
 

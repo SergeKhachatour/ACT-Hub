@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const assetController = require('../controllers/assetController');
+const { 
+    getTopAssets, 
+    getAssets, 
+    getAssetDetails, 
+    searchAssets 
+} = require('../controllers/assetController');
 
 // Add CORS headers middleware for this route
 router.use((req, res, next) => {
@@ -11,9 +16,9 @@ router.use((req, res, next) => {
 });
 
 // Routes with sort and filter options
-router.get('/top', assetController.getTopAssets); // Default sort by market cap
-router.get('/assets', assetController.getAssets);  // With sort parameters
-router.get('/:code/:issuer', assetController.getAssetDetails);
-router.get('/search/:query', assetController.searchAssets);
+router.get('/', getAssets);
+router.get('/top', getTopAssets);
+router.get('/search/:query', searchAssets);
+router.get('/:code/:issuer', getAssetDetails);
 
 module.exports = router; 

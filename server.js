@@ -8,7 +8,7 @@ const WebSocket = require('ws');
 const http = require('http');
 const swapRoutes = require('./routes/swap.routes');
 const walletRoutes = require('./routes/wallet.routes');
-const poolRoutes = require('./routes/pool.routes');
+const poolRoutes = require('./routes/poolRoutes');
 const marketRoutes = require('./routes/market.routes');
 const authRoutes = require('./routes/auth.routes');
 const connectDB = require('./config/database');
@@ -21,7 +21,7 @@ const wss = new WebSocket.Server({ server });
 
 // CORS configuration
 app.use(cors({
-    origin: 'http://localhost:3002',  // Your frontend URL
+    origin: ['http://localhost:3002', 'http://localhost:3333'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -34,7 +34,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/swap', swapRoutes);
-app.use('/api/pool', poolRoutes);
+app.use('/api/pools', poolRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/assets', assetRoutes);
 
@@ -74,13 +74,19 @@ app.get('/api/test/db', async (req, res) => {
     }
 });
 
-// Serve static files from the React build
-app.use(express.static(path.join(__dirname, 'frontend/build')));
-
-// Handle React routing, return all requests to React app
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
-});
+// Serve static files and handle React routing only in production
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'frontend/build')));
+    
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+    });
+} else {
+    // In development, just handle API routes
+    app.get('/', (req, res) => {
+        res.json({ message: 'API is running' });
+    });
+}
 
 // WebSocket connection handling
 wss.on('connection', async (ws, req) => {
