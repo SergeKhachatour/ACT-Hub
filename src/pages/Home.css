@@ -1,0 +1,28 @@
+.home-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.features-section {
+  margin-top: 2rem;
+}
+
+.features-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.features-section li {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.network-info {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+} 

@@ -1,0 +1,74 @@
+.price-alert {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.alert-form {
+    margin: 15px 0;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+}
+
+.condition-select {
+    width: 100px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.price-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.create-alert-button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.create-alert-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.alerts-list {
+    margin-top: 15px;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.alert-info {
+    color: #495057;
+}
+
+.delete-alert-button {
+    padding: 4px 8px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.no-alerts {
+    color: #6c757d;
+    text-align: center;
+    padding: 10px;
+} 

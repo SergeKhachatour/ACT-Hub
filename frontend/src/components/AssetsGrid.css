@@ -1,0 +1,218 @@
+.assets-grid {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #1e1e1e;
+}
+
+.asset-card {
+    height: 100%;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-color: #ffffff !important;
+}
+
+.asset-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.asset-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.asset-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.asset-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.asset-code {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+}
+
+.asset-type {
+    font-size: 0.875rem !important;
+    color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.price-section {
+    margin: 16px 0;
+}
+
+.price {
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+}
+
+.price-change {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+}
+
+.price-change.positive {
+    color: #4caf50 !important;
+}
+
+.price-change.negative {
+    color: #f44336 !important;
+}
+
+.stats-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    color: rgba(0, 0, 0, 0.7) !important;
+    font-size: 0.875rem !important;
+}
+
+.stat-value {
+    color: #000000 !important;
+    font-weight: 500 !important;
+}
+
+.loading-skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.asset-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.issuer-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.issuer-link:hover {
+    text-decoration: underline;
+}
+
+.positive-change {
+    color: #28a745;
+}
+
+.negative-change {
+    color: #dc3545;
+}
+
+.mui-data-grid {
+    border: none !important;
+}
+
+.MuiDataGrid-columnHeaders {
+    background-color: #f8f9fa;
+}
+
+.MuiDataGrid-row:hover {
+    background-color: #f8f9fa !important;
+}
+
+.assets-table {
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.asset-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.asset-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.asset-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.asset-code {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+}
+
+.asset-type {
+    font-size: 0.75rem !important;
+    color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.price {
+    font-weight: 500 !important;
+    color: #000000 !important;
+}
+
+.price-change {
+    font-weight: 500 !important;
+}
+
+.price-change.positive {
+    color: #4caf50 !important;
+}
+
+.price-change.negative {
+    color: #f44336 !important;
+}
+
+.volume, .market-cap {
+    color: #000000 !important;
+}
+
+/* Table header styling */
+.assets-table .MuiTableHead-root .MuiTableCell-head {
+    background-color: #f8f9fa !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
+}
+
+/* Table row hover effect */
+.asset-row:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    cursor: pointer;
+}
+
+/* Table cell borders */
+.assets-table .MuiTableCell-root {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+} 

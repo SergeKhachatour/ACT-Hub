@@ -1,0 +1,95 @@
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 20px;
+    text-align: center;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.login-button {
+    padding: 12px 24px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+}
+
+.login-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.login-button.connected {
+    background-color: #28a745;
+}
+
+.error-message {
+    color: #dc3545;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8d7da;
+    border-radius: 4px;
+}
+
+.warning-message {
+    color: #856404;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #fff3cd;
+    border-radius: 4px;
+}
+
+.info-message {
+    color: #004085;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #cce5ff;
+    border-radius: 4px;
+}
+
+.success-message {
+    color: #155724;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #d4edda;
+    border-radius: 4px;
+}
+
+.warning-message a {
+    color: #856404;
+    text-decoration: underline;
+}
+
+.warning-message a:hover {
+    color: #533f03;
+}
+
+.debug-info {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    text-align: left;
+}
+
+.debug-info p {
+    margin: 2px 0;
+}
+
+.warning-message ul {
+    text-align: left;
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.warning-message li {
+    margin: 5px 0;
+} 

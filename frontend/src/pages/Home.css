@@ -1,0 +1,128 @@
+.home-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.home-container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.wallet-section {
+  margin-top: 40px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.features-section {
+  margin-top: 2rem;
+}
+
+.features-section ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.features-section li {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.feature-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.feature-buttons button {
+  padding: 0.5rem 1rem;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.feature-buttons button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.feature-buttons button:not(:disabled):hover {
+  background-color: #1976d2;
+}
+
+.wallet-info, .balance-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.secret-key {
+  word-break: break-all;
+  color: #f44336;
+}
+
+.error-message {
+  color: #f44336;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background-color: #ffebee;
+  border-radius: 4px;
+}
+
+.network-info {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+}
+
+.freighter-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.public-key {
+  font-family: monospace;
+  background-color: #f5f5f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 2px;
+}
+
+button.connected {
+  background-color: #4caf50;
+}
+
+button.connected:hover {
+  background-color: #388e3c;
+}
+
+.error-banner {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    margin: 1rem 0;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.loading-banner {
+    background-color: #cce5ff;
+    color: #004085;
+    padding: 1rem;
+    margin: 1rem 0;
+    border: 1px solid #b8daff;
+    border-radius: 4px;
+} 
