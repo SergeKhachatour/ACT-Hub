@@ -1,4 +1,4 @@
-# ACT Hub - Stellar Asset Trading Hub
+# ACT Hub - Experimental Project
 
 A comprehensive trading platform for Stellar assets with liquidity pool management, asset swapping, and real-time analytics.
 
@@ -12,8 +12,6 @@ A comprehensive trading platform for Stellar assets with liquidity pool manageme
 - 💧 Liquidity Pool Analytics
 - 💱 Asset Swapping
 - 📊 Real-time Market Data
-- 📱 Responsive Design
-- 🔄 Real-time Updates
 
 ## Prerequisites
 

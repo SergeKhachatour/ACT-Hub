@@ -447,18 +447,14 @@ const getAssets = async (req, res) => {
             return res.json(cachedAssets);
         }
 
-        // Get XLM price and data
-        const [xlmPrice, xlmData] = await Promise.all([
-            stellar.orderbook(
-                new StellarSdk.Asset.native(),
-                new StellarSdk.Asset('USDC', 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN')
-            )
-            .limit(1)
-            .call()
-            .then(response => parseFloat(response.bids[0]?.price || 0)),
-            fetch('https://api.stellar.expert/explorer/public/asset/native')
-            .then(res => res.json())
-        ]);
+        // Get XLM price first for reference
+        const xlmPrice = await stellar.orderbook(
+            new StellarSdk.Asset.native(),
+            new StellarSdk.Asset('USDC', 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN')
+        )
+        .limit(1)
+        .call()
+        .then(response => parseFloat(response.bids[0]?.price || 0));
 
         // Fetch data for all assets in parallel
         const assetsWithDetails = await Promise.all(
@@ -467,28 +463,32 @@ const getAssets = async (req, res) => {
                     let assetDetails = { ...asset };
 
                     if (asset.issuer === 'native') {
-                        // For XLM
-                        assetDetails.holders = xlmData.statistics?.accounts?.total || 0;
-                        assetDetails.price = xlmPrice;
-                        assetDetails.supply = xlmData.supply?.circulating || 0;
-                        assetDetails.market_cap = xlmPrice * assetDetails.supply;
-                    } else {
-                        // For other assets, get data from Stellar Expert
-                        const response = await fetch(
-                            `https://api.stellar.expert/explorer/public/asset/${asset.code}-${asset.issuer}`
-                        );
-                        const data = await response.json();
-
-                        assetDetails.holders = data.statistics?.accounts?.total || 0;
-                        assetDetails.supply = parseFloat(data.asset?.supply || 0);
+                        // For XLM, get account count from latest ledger
+                        const ledger = await stellar.ledgers()
+                            .order('desc')
+                            .limit(1)
+                            .call()
+                            .then(response => response.records[0]);
                         
-                        // Get price based on asset type
+                        assetDetails.holders = parseInt(ledger.account_count);
+                        assetDetails.price = xlmPrice;
+                        assetDetails.supply = parseFloat(ledger.total_coins);
+                        assetDetails.market_cap = xlmPrice * parseFloat(ledger.total_coins);
+                    } else {
+                        // For other assets, get stats from assets endpoint
+                        const assetStats = await stellar.assets()
+                            .forCode(asset.code)
+                            .forIssuer(asset.issuer)
+                            .call()
+                            .then(response => response.records[0]);
+
+                        assetDetails.holders = parseInt(assetStats?.num_accounts || 0);
+                        assetDetails.supply = parseFloat(assetStats?.amount || 0);
+
+                        // Get price from USDC orderbook
                         if (asset.code === 'USDC' || asset.code === 'EURT') {
                             assetDetails.price = 1; // Stablecoins
-                        } else if (asset.code === 'yXLM') {
-                            assetDetails.price = xlmPrice;
                         } else {
-                            // Get price from USDC orderbook
                             const orderbook = await stellar.orderbook(
                                 new StellarSdk.Asset(asset.code, asset.issuer),
                                 new StellarSdk.Asset('USDC', 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN')
@@ -516,7 +516,6 @@ const getAssets = async (req, res) => {
                     return { 
                         ...asset, 
                         pool_count: 0,
-                        price: 0,
                         market_cap: 0,
                         holders: 0,
                         supply: 0
