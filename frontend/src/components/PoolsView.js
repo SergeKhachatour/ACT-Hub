@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import PoolFilters from './PoolFilters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import StellarSdk from 'stellar-sdk';
 
 const PoolsView = () => {
     const { code, issuer } = useParams();
@@ -68,6 +69,8 @@ const PoolsView = () => {
         apyRange: [0, 100]
     });
     const [searchHistory, setSearchHistory] = useLocalStorage('poolSearchHistory', []);
+    const [trades, setTrades] = useState([]);
+    const [isLoadingTrades, setIsLoadingTrades] = useState(false);
 
     useEffect(() => {
         const fetchPools = async () => {
@@ -84,14 +87,12 @@ const PoolsView = () => {
                 
                 const data = await response.json();
                 
-                // Handle empty or invalid data
                 if (!Array.isArray(data)) {
                     console.warn('Received non-array data:', data);
                     setPools([]);
                     return;
                 }
                 
-                // Filter out any invalid pool data
                 const validPools = data.filter(pool => 
                     pool && pool.id && pool.reserves && 
                     Array.isArray(pool.reserves) && 
@@ -101,7 +102,7 @@ const PoolsView = () => {
                 setPools(validPools);
                 if (validPools.length > 0) {
                     setSelectedPool(validPools[0]);
-                    await fetchPoolHistory(validPools[0].id);
+                    await fetchPoolTrades(validPools[0].id);
                 }
             } catch (err) {
                 console.error('Error fetching pools:', err);
@@ -124,39 +125,45 @@ const PoolsView = () => {
         setFilteredPools(filtered);
     }, [searchTerm, pools]);
 
-    const fetchPoolHistory = async (poolId) => {
+    const fetchPoolTrades = async (poolId) => {
+        setIsLoadingTrades(true);
         try {
-            setLoading(true);
-            // Remove the REACT_APP_API_URL since we're using proxy
-            const response = await fetch(`/api/pools/${poolId}/trades`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const trades = await response.json();
-            
-            if (!Array.isArray(trades) || trades.length === 0) {
-                setChartData([]);
-                return;
-            }
-            
-            // Process trades into chart data
-            const processedData = trades
+            const server = new StellarSdk.Server('https://horizon.stellar.org');
+            const trades = await server.trades()
+                .forLiquidityPool(poolId)
+                .limit(100)
+                .order('desc')
+                .call();
+
+            const formattedTrades = trades.records.map(trade => ({
+                id: trade.id,
+                time: new Date(trade.ledger_close_time),
+                baseAmount: parseFloat(trade.base_amount),
+                counterAmount: parseFloat(trade.counter_amount),
+                price: parseFloat(trade.price.n) / parseFloat(trade.price.d),
+                type: parseFloat(trade.base_is_seller) ? 'Sell' : 'Buy',
+                volume: parseFloat(trade.base_amount) * (parseFloat(trade.price.n) / parseFloat(trade.price.d))
+            }));
+
+            setTrades(formattedTrades);
+
+            const chartDataFormatted = formattedTrades
                 .map(trade => ({
-                    time: new Date(trade.timestamp).toLocaleTimeString(),
-                    price: parseFloat(trade.price),
-                    volume: parseFloat(trade.base_amount) * parseFloat(trade.price), // Convert to counter asset value
-                    timestamp: new Date(trade.timestamp)
+                    time: trade.time.toLocaleTimeString(),
+                    price: trade.price,
+                    volume: trade.volume,
+                    timestamp: trade.time
                 }))
                 .sort((a, b) => a.timestamp - b.timestamp);
-            
-            setChartData(processedData);
-        } catch (err) {
-            console.error('Error fetching pool history:', err);
+
+            setChartData(chartDataFormatted);
+
+        } catch (error) {
+            console.error('Error fetching trades:', error);
+            setTrades([]);
             setChartData([]);
         } finally {
-            setLoading(false);
+            setIsLoadingTrades(false);
         }
     };
 
@@ -166,14 +173,13 @@ const PoolsView = () => {
 
     const handlePoolSelect = async (pool) => {
         setSelectedPool(pool);
-        await fetchPoolHistory(pool.id);
+        await fetchPoolTrades(pool.id);
     };
 
     const handleSearchChange = (event) => {
         const value = event.target.value;
         setSearchTerm(value);
         
-        // Add to search history if not empty
         if (value.trim() && !searchHistory.includes(value.trim())) {
             setSearchHistory(prev => [value.trim(), ...prev].slice(0, 5));
         }
@@ -199,7 +205,6 @@ const PoolsView = () => {
     const getFilteredAndSortedPools = () => {
         let result = [...pools];
 
-        // Apply filters
         result = result.filter(pool => {
             const meetsTPLRange = pool.total_value >= filters.tvlRange[0] && 
                                 pool.total_value <= filters.tvlRange[1];
@@ -208,7 +213,6 @@ const PoolsView = () => {
             return meetsTPLRange && meetsAPYRange;
         });
 
-        // Apply search
         if (searchTerm) {
             result = result.filter(pool => 
                 pool.pair.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -216,7 +220,6 @@ const PoolsView = () => {
             );
         }
 
-        // Apply sorting
         result.sort((a, b) => {
             let valueA, valueB;
             switch (filters.sortBy) {
@@ -332,7 +335,6 @@ const PoolsView = () => {
                     </IconButton>
                 </Box>
 
-                {/* Search History */}
                 {searchHistory.length > 0 && (
                     <Box sx={{ mt: 1 }}>
                         <Typography variant="caption" color="textSecondary">
@@ -356,7 +358,6 @@ const PoolsView = () => {
                     </Box>
                 )}
 
-                {/* Filters */}
                 {showFilters && (
                     <PoolFilters
                         filters={filters}
@@ -367,7 +368,6 @@ const PoolsView = () => {
             </Box>
 
             <Grid container spacing={3}>
-                {/* Pool Stats Cards */}
                 <Grid item xs={12}>
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={3}>
@@ -421,7 +421,6 @@ const PoolsView = () => {
                     </Grid>
                 </Grid>
 
-                {/* Charts Section */}
                 <Grid item xs={12}>
                     <Paper>
                         <Tabs value={tabValue} onChange={handleTabChange} centered>
@@ -465,7 +464,6 @@ const PoolsView = () => {
                     </Paper>
                 </Grid>
 
-                {/* Pools Table */}
                 <Grid item xs={12}>
                     <TableContainer component={Paper}>
                         <Table>
@@ -536,6 +534,88 @@ const PoolsView = () => {
                         </Table>
                     </TableContainer>
                 </Grid>
+
+                <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+                        Recent Trades
+                    </Typography>
+                    
+                    {isLoadingTrades ? (
+                        <CircularProgress />
+                    ) : trades.length > 0 ? (
+                        <TableContainer component={Paper}>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Time</TableCell>
+                                        <TableCell>Type</TableCell>
+                                        <TableCell>Price</TableCell>
+                                        <TableCell>Base Amount</TableCell>
+                                        <TableCell>Counter Amount</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {trades.map((trade) => (
+                                        <TableRow key={trade.id}>
+                                            <TableCell>
+                                                {new Date(trade.time).toLocaleString()}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip 
+                                                    label={trade.type}
+                                                    color={trade.type === 'Buy' ? 'success' : 'error'}
+                                                    size="small"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                {trade.price.toFixed(7)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {trade.baseAmount.toFixed(7)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {trade.counterAmount.toFixed(7)}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    ) : (
+                        <Alert severity="info">
+                            No trade data available for the selected time period
+                        </Alert>
+                    )}
+                </Grid>
+
+                {trades.length > 0 && (
+                    <Grid item xs={12}>
+                        <Box sx={{ mt: 4, height: 300 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Trade History
+                            </Typography>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={trades}>
+                                    <XAxis 
+                                        dataKey="time" 
+                                        tickFormatter={(time) => new Date(time).toLocaleTimeString()}
+                                    />
+                                    <YAxis />
+                                    <Tooltip 
+                                        labelFormatter={(label) => new Date(label).toLocaleString()}
+                                        formatter={(value) => value.toFixed(7)}
+                                    />
+                                    <Line 
+                                        type="monotone" 
+                                        dataKey="price" 
+                                        stroke="#8884d8" 
+                                        dot={false}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </Box>
+                    </Grid>
+                )}
             </Grid>
         </Box>
     );

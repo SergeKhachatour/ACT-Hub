@@ -1,7 +1,16 @@
 const fetch = require('node-fetch');
 const StellarSdk = require('stellar-sdk');
 const server = new StellarSdk.Server('https://horizon.stellar.org');
+const { Networks } = StellarSdk;
+
+// Set up the network correctly
+const stellar = new StellarSdk.Server('https://horizon.stellar.org', {
+    networkPassphrase: Networks.PUBLIC
+});
+
 const HORIZON_URL = 'https://horizon.stellar.org';
+const NodeCache = require('node-cache');
+const assetCache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
 
 // Retry configuration
 const RETRY_ATTEMPTS = 3;
@@ -329,12 +338,199 @@ const getTopAssets = async (req, res) => {
     }
 };
 
+const curatedAssets = [
+    {
+        code: 'XLM',
+        issuer: 'native',
+        name: 'Stellar Lumens',
+        type: 'native',
+        image: 'https://stellar.expert/img/assets/native.svg',
+        holders: 0
+    },
+    {
+        code: 'USDC',
+        issuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+        name: 'USD Coin',
+        type: 'stablecoin',
+        image: 'https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png',
+        holders: 0
+    },
+    {
+        code: 'AQUA',
+        issuer: 'GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA',
+        name: 'Aquarius',
+        type: 'curated',
+        image: 'https://aqua.network/assets/aqua-logo.png',
+        holders: 0
+    },
+    {
+        code: 'LSP',
+        issuer: 'GAB7STHVD5BDH3EEYXPI3OM7PCS4V443PYB5FNT6CFGJVPDLMKDM24WK',
+        name: 'LOBSTR Utility Token',
+        type: 'curated',
+        image: 'https://lobstr.co/assets/logos/lsp.png',
+        holders: 0
+    },
+    {
+        code: 'ACT',
+        issuer: 'GAHHULDPDVGB5WS5PH7BCGLJ7ZHECDBIIMKB62UPVDUOCHNFL7HX3FS7',
+        name: 'ACT Token',
+        type: 'curated',
+        image: 'https://act.network/assets/act-logo.png',
+        holders: 0
+    },
+    {
+        code: 'BRAINFROG',
+        issuer: 'GCB2CE4PWFOECXWHAPAANRN34BS2ECGUKXFO655MEB4X674QXKI7QXHR',
+        name: 'BRAINFROG',
+        type: 'curated',
+        image: 'https://lobstr.co/assets/logos/brainfrog.png',
+        holders: 0
+    },
+    {
+        code: 'yXLM',
+        issuer: 'GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55',
+        name: 'Wrapped Stellar',
+        type: 'wrapped',
+        image: 'https://assets.coingecko.com/coins/images/100/small/Stellar_symbol_black_RGB.png',
+        holders: 0
+    },
+    {
+        code: 'yBTC',
+        issuer: 'GDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55',
+        name: 'Wrapped Bitcoin',
+        type: 'wrapped',
+        image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
+        holders: 0
+    },
+    {
+        code: 'yETH',
+        issuer: 'GDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55',
+        name: 'Wrapped Ethereum',
+        type: 'wrapped',
+        image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+        holders: 0
+    },
+    {
+        code: 'EURT',
+        issuer: 'GAP5LETOV6YIE62YAM56STDANPRDO7ZFDBGSNHJQIYGGKSMOZAHOOS2S',
+        name: 'Euro Token',
+        type: 'stablecoin',
+        image: 'https://assets.coingecko.com/coins/images/17241/small/euro-token.png',
+        holders: 0
+    }
+];
+
+const getLobstrAssetData = async (code, issuer) => {
+    try {
+        const response = await fetch(
+            `https://api.stellar.expert/explorer/public/asset/${code}-${issuer}`
+        );
+        const data = await response.json();
+        return {
+            holders: data.statistics?.accounts?.total || 0,
+            supply: parseFloat(data.asset?.supply || 0),
+            price: data.price?.usd || 0,
+            market_cap: data.price?.usd * parseFloat(data.asset?.supply || 0)
+        };
+    } catch (error) {
+        console.error(`Error fetching ${code} data from Stellar Expert:`, error);
+        return null;
+    }
+};
+
 const getAssets = async (req, res) => {
     try {
-        // Reuse getTopAssets implementation for now
-        await getTopAssets(req, res);
+        // Check cache first
+        const cachedAssets = assetCache.get('assets');
+        if (cachedAssets) {
+            return res.json(cachedAssets);
+        }
+
+        // Get XLM price and data
+        const [xlmPrice, xlmData] = await Promise.all([
+            stellar.orderbook(
+                new StellarSdk.Asset.native(),
+                new StellarSdk.Asset('USDC', 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN')
+            )
+            .limit(1)
+            .call()
+            .then(response => parseFloat(response.bids[0]?.price || 0)),
+            fetch('https://api.stellar.expert/explorer/public/asset/native')
+            .then(res => res.json())
+        ]);
+
+        // Fetch data for all assets in parallel
+        const assetsWithDetails = await Promise.all(
+            curatedAssets.map(async (asset) => {
+                try {
+                    let assetDetails = { ...asset };
+
+                    if (asset.issuer === 'native') {
+                        // For XLM
+                        assetDetails.holders = xlmData.statistics?.accounts?.total || 0;
+                        assetDetails.price = xlmPrice;
+                        assetDetails.supply = xlmData.supply?.circulating || 0;
+                        assetDetails.market_cap = xlmPrice * assetDetails.supply;
+                    } else {
+                        // For other assets, get data from Stellar Expert
+                        const response = await fetch(
+                            `https://api.stellar.expert/explorer/public/asset/${asset.code}-${asset.issuer}`
+                        );
+                        const data = await response.json();
+
+                        assetDetails.holders = data.statistics?.accounts?.total || 0;
+                        assetDetails.supply = parseFloat(data.asset?.supply || 0);
+                        
+                        // Get price based on asset type
+                        if (asset.code === 'USDC' || asset.code === 'EURT') {
+                            assetDetails.price = 1; // Stablecoins
+                        } else if (asset.code === 'yXLM') {
+                            assetDetails.price = xlmPrice;
+                        } else {
+                            // Get price from USDC orderbook
+                            const orderbook = await stellar.orderbook(
+                                new StellarSdk.Asset(asset.code, asset.issuer),
+                                new StellarSdk.Asset('USDC', 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN')
+                            )
+                            .limit(1)
+                            .call();
+
+                            assetDetails.price = parseFloat(orderbook.bids[0]?.price || 0);
+                        }
+
+                        assetDetails.market_cap = assetDetails.price * assetDetails.supply;
+                    }
+
+                    // Get liquidity pools count
+                    const poolsResponse = await stellar.liquidityPools()
+                        .forAssets([new StellarSdk.Asset(asset.code, asset.issuer === 'native' ? null : asset.issuer)])
+                        .limit(200)
+                        .call();
+
+                    assetDetails.pool_count = poolsResponse.records.length;
+
+                    return assetDetails;
+                } catch (error) {
+                    console.error(`Error fetching details for ${asset.code}:`, error);
+                    return { 
+                        ...asset, 
+                        pool_count: 0,
+                        price: 0,
+                        market_cap: 0,
+                        holders: 0,
+                        supply: 0
+                    };
+                }
+            })
+        );
+
+        // Cache the results
+        assetCache.set('assets', assetsWithDetails);
+        res.json(assetsWithDetails);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error fetching assets:', error);
+        res.status(500).json({ error: 'Failed to fetch assets' });
     }
 };
 

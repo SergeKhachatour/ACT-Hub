@@ -160,48 +160,28 @@ const getPoolDetails = async (req, res) => {
 
 const getPoolTrades = async (req, res) => {
     try {
-        const { pool_id } = req.params;
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        
-        try {
-            const trades = await retryOperation(async () => {
-                return await server.trades()
-                    .forLiquidityPool(pool_id)
-                    .cursor('now')
-                    .limit(200)
-                    .order('desc')
-                    .call();
-            });
+        const { poolId } = req.params;
+        const server = new StellarSdk.Server('https://horizon.stellar.org');
 
-            const processedTrades = trades.records
-                .filter(trade => new Date(trade.timestamp) > oneDayAgo)
-                .map(trade => ({
-                    id: trade.id,
-                    timestamp: trade.timestamp,
-                    price: parseFloat(trade.price),
-                    base_amount: parseFloat(trade.base_amount),
-                    counter_amount: parseFloat(trade.counter_amount),
-                    // Add base and counter asset info
-                    base_asset: trade.base_asset_code || 'XLM',
-                    counter_asset: trade.counter_asset_code || 'XLM'
-                }))
-                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // Sort by timestamp
+        const trades = await server.trades()
+            .forLiquidityPool(poolId)
+            .limit(100)
+            .order('desc')
+            .call();
 
-            res.json(processedTrades);
-        } catch (error) {
-            if (error.response?.status === 404) {
-                // Pool not found, return empty array
-                res.json([]);
-            } else {
-                throw error;
-            }
-        }
+        const formattedTrades = trades.records.map(trade => ({
+            id: trade.id,
+            time: trade.ledger_close_time,
+            baseAmount: parseFloat(trade.base_amount),
+            counterAmount: parseFloat(trade.counter_amount),
+            price: parseFloat(trade.price.n) / parseFloat(trade.price.d),
+            type: trade.base_is_seller ? 'Sell' : 'Buy'
+        }));
+
+        res.json(formattedTrades);
     } catch (error) {
         console.error('Error fetching pool trades:', error);
-        res.status(500).json({ 
-            error: 'Failed to fetch pool trades',
-            details: error.message
-        });
+        res.status(500).json({ error: 'Failed to fetch pool trades' });
     }
 };
 

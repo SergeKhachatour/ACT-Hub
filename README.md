@@ -5,6 +5,10 @@ A comprehensive trading platform for Stellar assets with liquidity pool manageme
 ## Features
 
 - 🌟 Asset Discovery & Management
+  - Native XLM
+  - LOBSTR Curated Assets (AQUA, LSP, ACT, BRAINFROG)
+  - Stablecoins (USDC, EURT)
+  - Wrapped Assets (yXLM, yBTC, yETH)
 - 💧 Liquidity Pool Analytics
 - 💱 Asset Swapping
 - 📊 Real-time Market Data
